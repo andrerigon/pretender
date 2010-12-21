@@ -1,0 +1,69 @@
+h2. WHY?
+
+Pretender is a library to help to integrate java systems with rest services who return json responses.
+You don't have to write a concrete class ( duplication, argh! ) just to hold some value, which in most cases is what you' ll do.
+Or worse, you would ship your domain classes to the client.
+
+For example, lets suppose a service which returns a person object serialized as json:
+
+<pre>
+<code>
+{"age":"5","name":"andre","buddies":{"maria":{"name":"maria","age":12}}}
+</code>
+</pre>
+
+
+You just write a simple interface like:
+
+<pre>
+<code>
+interface Person{
+   String name();
+   Integer age();
+   List<Person> buddies;
+}
+</code>
+</pre>
+
+And pretender will generate an implementation for the Person interface, returning the values deserialized from the json.
+If your method is named "name". it will return the "name" field and so on.
+
+If you want to use annoter name, just annotate you method with
+
+<pre>
+<code>
+@BindToName("my new property name")
+</code>
+</pre>
+
+h2. INSTALLATION
+
+<pre>
+<code>git clone git://github.com/andrerigon/pretender.git
+cd pretender
+mvn install</code>
+</pre>
+
+h2. USAGE
+
+Pretender comes in two flavours: 
+
+lazy:
+
+<pre>
+<code>
+Pretender.gsonLazyDeserializerFor(Person.class, Client.class, ....);
+</code>
+</pre>
+
+and eager bean deserializer:
+
+<pre>
+<code>
+Pretender.gsonEagerDeserializerFor(Person.class, Client.class, ....);
+</code>
+</pre>
+
+each one will return a Gson instance configured to use pretender's type adapter
+
+
