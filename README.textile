@@ -28,7 +28,7 @@ interface Person{
 And pretender will generate an implementation for the Person interface, returning the values deserialized from the json.
 If your method is named "name". it will return the "name" field and so on.
 
-If you want to use annoter name, just annotate you method with
+If you want to use another name, just annotate you method with
 
 <pre>
 <code>
