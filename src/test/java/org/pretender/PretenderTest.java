@@ -5,6 +5,7 @@ import static org.junit.Assert.assertEquals;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -39,6 +40,8 @@ public class PretenderTest {
 		}
 	};
 
+	final Date NOW = new Date();
+
 	String json = new Gson().toJson(new HashMap<String, Object>() {
 
 		private static final long serialVersionUID = 1L;
@@ -46,6 +49,7 @@ public class PretenderTest {
 		{
 			put("name", "andre");
 			put("age", "" + 5);
+			put("birth", NOW);
 			put("list", Arrays.asList(3, 4));
 			ConcretePerson p = new ConcretePerson();
 			p.age = (12);
@@ -64,6 +68,7 @@ public class PretenderTest {
 
 		for (int i = 0; i < max; i++) {
 			Person p = gson.fromJson(json, Person.class);
+			p.birth();
 			assertPersonOK(p);
 		}
 	}
@@ -96,13 +101,24 @@ public class PretenderTest {
 				p.age = (12);
 				p.name = ("maria");
 				add(p);
+
+				ConcretePerson p2 = new ConcretePerson();
+				p2.age = (125);
+				p2.name = ("jose");
+				add(p2);
 			}
 		});
 
 		Gson gson = Pretender.gsonLazyDeserializerFor(Person.class);
-		Person p = gson.<List<Person>> fromJson(listjson, new TypeToken<List<Person>>() {
-		}.getType()).get(0);
+		final List<Person> list = gson.<List<Person>> fromJson(listjson, new TypeToken<List<Person>>() {
+		}.getType());
+		Person p = list.get(0);
 		assertEquals("maria", p.nomeMaisLegal());
+		assertEquals(Integer.valueOf(12), p.age());
+
+		p = list.get(1);
+		assertEquals("jose", p.nomeMaisLegal());
+		assertEquals(Integer.valueOf(125), p.age());
 	}
 
 	@Test
@@ -123,6 +139,38 @@ public class PretenderTest {
 		assertEquals("maria", p.nomeMaisLegal());
 	}
 
+	@Test
+	public void embbebedPersonTest() {
+		Map<String, Object> person = new HashMap<String, Object>() {
+
+			private static final long serialVersionUID = 1L;
+
+			{
+				put("name", "andre");
+				put("age", "" + 5);
+				put("birth", NOW);
+				put("list", Arrays.asList(3, 4));
+				ConcretePerson p = new ConcretePerson();
+				p.age = (12);
+				p.name = ("maria");
+				Map<String, ConcretePerson> map = new HashMap<String, PretenderTest.ConcretePerson>();
+				map.put("maria", p);
+				put("buddies", map);
+			}
+		};
+
+		Map<String, Object> clientMap = new HashMap<String, Object>();
+		clientMap.put("person", person);
+		clientMap.put("clientSince", NOW);
+
+		String clientJson = new Gson().toJson(clientMap);
+
+		Client client = Pretender.gsonLazyDeserializerFor(Client.class, Person.class)
+				.fromJson(clientJson, Client.class);
+		assertPersonOK(client.person());
+		assertEquals(NOW.toString(), client.clientSince().toString());
+	}
+
 	private void assertPersonOK(Person p) {
 		Person b = p.buddies().get("maria");
 		assertEquals("andre", p.nomeMaisLegal());
@@ -130,6 +178,7 @@ public class PretenderTest {
 		assertEquals("maria", b.nomeMaisLegal());
 		assertEquals(Integer.valueOf(12), Integer.valueOf(b.age()));
 		assertArrayEquals(new Integer[] { 3, 4 }, p.list().toArray());
+		assertEquals(NOW.toString(), p.birth().toString());
 	}
 
 	public static class ConcretePerson implements Person {
@@ -141,6 +190,7 @@ public class PretenderTest {
 		private Integer age;
 		private List<Integer> list;
 		private Map<String, ConcretePerson> buddies;
+		private Date birth;
 
 		@Override
 		public String nomeMaisLegal() {
@@ -162,6 +212,9 @@ public class PretenderTest {
 			return buddies;
 		}
 
+		public Date birth() {
+			return birth;
+		}
 	}
 
 	public static interface Person {
@@ -174,5 +227,13 @@ public class PretenderTest {
 		List<Integer> list();
 
 		Map<String, ConcretePerson> buddies();
+
+		Date birth();
+	}
+
+	public static interface Client {
+		Person person();
+
+		Date clientSince();
 	}
 }
