@@ -8,7 +8,6 @@ import java.util.Map.Entry;
 
 import org.pretender.annotation.BindToName;
 
-
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -23,7 +22,7 @@ public abstract class SkeletonDeserializer implements Deserializer {
 		return element.getAsJsonObject().get(name);
 	}
 
-	 Map<String, JsonElement> childrenOf(JsonElement element) {
+	Map<String, JsonElement> childrenOf(JsonElement element) {
 		final JsonObject parent = element.getAsJsonObject();
 		final Map<String, JsonElement> children = new HashMap<String, JsonElement>();
 		for (Entry<String, JsonElement> e : parent.entrySet()) {
@@ -36,8 +35,6 @@ public abstract class SkeletonDeserializer implements Deserializer {
 		if (m.isAnnotationPresent(BindToName.class)) {
 			return m.getAnnotation(BindToName.class).value();
 		}
-		return m.getName();
+		return m.getName().replaceAll("^get", "");
 	}
-
-	
 }
