@@ -16,8 +16,8 @@
 	</properties>
 
 	<scm>
-		<connection>scm:git:git@github.com:andrerigon/ape.git</connection>
-		<developerConnection>scm:git:git@github.com:andrerigon/ape.git</developerConnection>
+		<connection>scm:git:git@github.com:andrerigon/pretender.git</connection>
+		<developerConnection>scm:git:git@github.com:andrerigon/pretender.git</developerConnection>
 	</scm>
 
 	<build>
