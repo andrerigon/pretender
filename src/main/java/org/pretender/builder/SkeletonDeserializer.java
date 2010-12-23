@@ -35,6 +35,11 @@ public abstract class SkeletonDeserializer implements Deserializer {
 		if (m.isAnnotationPresent(BindToName.class)) {
 			return m.getAnnotation(BindToName.class).value();
 		}
-		return m.getName().replaceAll("^get", "");
+		return removeGet(m.getName());
+	}
+
+	private static String removeGet(String name) {
+		String withoutGet = name.replaceAll("^get", "");
+		return withoutGet.substring(0, 1).toLowerCase() + withoutGet.substring(1);
 	}
 }

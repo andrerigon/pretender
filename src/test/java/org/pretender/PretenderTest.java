@@ -42,26 +42,27 @@ public class PretenderTest {
 
 	final Date NOW = new Date();
 
-	String json = new Gson().toJson(new HashMap<String, Object>() {
-
-		private static final long serialVersionUID = 1L;
-
-		{
-			put("name", "andre");
-			put("age", "" + 5);
-			put("birth", NOW);
-			put("list", Arrays.asList(3, 4));
-			ConcretePerson p = new ConcretePerson();
-			p.age = (12);
-			p.name = ("maria");
-			Map<String, ConcretePerson> map = new HashMap<String, PretenderTest.ConcretePerson>();
-			map.put("maria", p);
-			put("buddies", map);
-		}
-	});
+	String json = new Gson().toJson(getPerson());
 
 	int max = 200000;
 
+	private Person getPerson(){
+		ConcretePerson person = new ConcretePerson();
+		person.name = "andre";
+		person.age = 5;
+		person.birth = NOW;
+		person.list = Arrays.asList(3, 4);
+		
+		ConcretePerson p = new ConcretePerson();
+		p.age = (12);
+		p.name = ("maria");
+		Map<String, ConcretePerson> map = new HashMap<String, PretenderTest.ConcretePerson>();
+		map.put("maria", p);
+		person.buddies = map;
+		
+		return person;
+	}
+	
 	@Test
 	public void abstractLazyPerson() {
 		Gson gson = Pretender.gsonLazyDeserializerFor(Person.class);
@@ -107,7 +108,8 @@ public class PretenderTest {
 				p2.name = ("jose");
 				add(p2);
 			}
-		});
+		}, new TypeToken<List<ConcretePerson>>() {
+		}.getType());
 
 		Gson gson = Pretender.gsonLazyDeserializerFor(Person.class);
 		final List<Person> list = gson.<List<Person>> fromJson(listjson, new TypeToken<List<Person>>() {
@@ -131,7 +133,8 @@ public class PretenderTest {
 				p.name = ("maria");
 				put("maria", p);
 			}
-		});
+		}, new TypeToken<Map<String, ConcretePerson>>() {
+		}.getType());
 
 		Gson gson = Pretender.gsonLazyDeserializerFor(Person.class);
 		Person p = gson.<Map<String, Person>> fromJson(listjson, new TypeToken<Map<String, Person>>() {
@@ -141,26 +144,10 @@ public class PretenderTest {
 
 	@Test
 	public void embbebedPersonTest() {
-		Map<String, Object> person = new HashMap<String, Object>() {
-
-			private static final long serialVersionUID = 1L;
-
-			{
-				put("name", "andre");
-				put("age", "" + 5);
-				put("birth", NOW);
-				put("list", Arrays.asList(3, 4));
-				ConcretePerson p = new ConcretePerson();
-				p.age = (12);
-				p.name = ("maria");
-				Map<String, ConcretePerson> map = new HashMap<String, PretenderTest.ConcretePerson>();
-				map.put("maria", p);
-				put("buddies", map);
-			}
-		};
+		
 
 		Map<String, Object> clientMap = new HashMap<String, Object>();
-		clientMap.put("person", person);
+		clientMap.put("person", getPerson());
 		clientMap.put("clientSince", NOW);
 
 		String clientJson = new Gson().toJson(clientMap);
