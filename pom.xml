@@ -1,5 +1,6 @@
 <?xml version="1.0"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>org.pretender</groupId>
@@ -13,29 +14,17 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
-	
+
 	<repositories>
 		<repository>
-			<id>snapshots</id>
-			<name>Archiva Managed Snapshot Repository</name>
-			<url>http://developer.netsite.com.br/archiva/repository/snapshots/</url>
-			<releases>
-				<enabled>true</enabled>
-			</releases>
+			<id>gson</id>
+			<url>http://google-gson.googlecode.com/svn/mavenrepo</url>
 			<snapshots>
 				<enabled>true</enabled>
 			</snapshots>
-		</repository>
-		<repository>
-			<id>internal</id>
-			<name>Archiva Managed Internal Repository</name>
-			<url>http://developer.netsite.com.br/archiva/repository/internal/</url>
 			<releases>
 				<enabled>true</enabled>
 			</releases>
-			<snapshots>
-				<enabled>false</enabled>
-			</snapshots>
 		</repository>
 	</repositories>
 
@@ -79,7 +68,7 @@
 		<dependency>
 			<groupId>com.google.code.gson</groupId>
 			<artifactId>gson</artifactId>
-			<version>1.3</version>
+			<version>1.6</version>
 		</dependency>
 		<dependency>
 			<groupId>asm</groupId>
