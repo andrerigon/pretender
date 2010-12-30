@@ -60,7 +60,6 @@
 		</snapshotRepository>
 	</distributionManagement>
 
-
 	<scm>
 		<connection>scm:git:git@github.com:andrerigon/pretender.git</connection>
 		<developerConnection>scm:git:git@github.com:andrerigon/pretender.git</developerConnection>
