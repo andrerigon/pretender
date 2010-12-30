@@ -35,11 +35,22 @@ public abstract class SkeletonDeserializer implements Deserializer {
 		if (m.isAnnotationPresent(BindToName.class)) {
 			return m.getAnnotation(BindToName.class).value();
 		}
-		return removeGet(m.getName());
+		return removePrefix(m.getName(), MethodPrefix.values());
 	}
 
-	private static String removeGet(String name) {
-		String withoutGet = name.replaceAll("^get", "");
-		return withoutGet.substring(0, 1).toLowerCase() + withoutGet.substring(1);
+	private static String removePrefix(String name, MethodPrefix... prefixes) {
+		for (MethodPrefix prefix : prefixes) {
+			String prefixName = prefix.toString().toLowerCase();
+			if (!name.startsWith(prefixName)) {
+				continue;
+			}
+			name = name.replaceAll("^" + prefixName, "");
+			name = name.substring(0, 1).toLowerCase() + name.substring(1);
+		}
+		return name;
+	}
+
+	static enum MethodPrefix {
+		IS, GET, HAS;
 	}
 }
