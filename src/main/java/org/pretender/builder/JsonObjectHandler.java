@@ -31,9 +31,9 @@ public class JsonObjectHandler implements InvocationHandler {
 
 	@Override
 	public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-		if(method.getName().equals( "toString" )){
-			return String.format( "Proxy for %s" ,  proxy.getClass() );
-		}
+        if( "hashCode".equals(method.getName()) ){
+            return 1;
+        }
 		return deserializer.property(method);
 	}
 }
