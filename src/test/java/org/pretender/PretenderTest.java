@@ -5,7 +5,10 @@ import com.google.caliper.SimpleBenchmark;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import org.junit.Test;
-import org.pretender.annotation.BindToName;
+import org.pretender.util.Benckmarked;
+import org.pretender.util.Client;
+import org.pretender.util.ConcretePerson;
+import org.pretender.util.Person;
 
 import java.util.*;
 
@@ -20,78 +23,27 @@ public class PretenderTest extends SimpleBenchmark {
 
     String json = new Gson().toJson(getPerson());
 
-    private Person getPerson() {
-        ConcretePerson person = new ConcretePerson();
-        person.name = "andre";
-        person.age = 5;
-        person.birth = NOW;
-        person.list = Arrays.asList(3, 4);
 
-        ConcretePerson p = new ConcretePerson();
-        p.age = (12);
-        p.name = ("maria");
-        Map<String, ConcretePerson> map = new HashMap<String, PretenderTest.ConcretePerson>();
-        map.put("maria", p);
-        person.buddies = map;
-
-        return person;
+    @Benckmarked
+    public void time_abstract_lazy_deserialization(int count) {
+        runLoop(count, lazyDeserializerFor(Person.class), Person.class);
     }
 
-    public void timeAbstractLazyDeserialization(int max) {
-        Gson gson = Pretender.gsonLazyDeserializerFor(Person.class);
-
-        for (int i = 0; i < max; i++) {
-            Person p = gson.fromJson(json, Person.class);
-            assertPersonOK(p);
-        }
+    @Benckmarked
+    public void time_abstract_eager_deserialization(int count) {
+        runLoop(count, eagerDeserializerFor(Person.class), Person.class);
     }
 
-    @Test
-    public void shouldInvokeHashCode() {
-        Gson gson = Pretender.gsonEagerDeserializerFor(Person.class);
-        Person p = gson.fromJson(json, Person.class);
-        assertNotNull(p.hashCode());
-    }
-
-    public void timeAbstractEagerDeserialization(int max) {
-        Gson gson = Pretender.gsonEagerDeserializerFor(Person.class);
-
-        for (int i = 0; i < max; i++) {
-            Person p = gson.fromJson(json, Person.class);
-            assertPersonOK(p);
-        }
-    }
-
-
-    public void timeConcreteDeserialization(int max) {
-        for (int i = 0; i < max; i++) {
-            Person p = new Gson().fromJson(json, ConcretePerson.class);
-            assertPersonOK(p);
-        }
+    @Benckmarked
+    public void time_concrete_deserialization(int count) {
+        runLoop(count, new Gson(), ConcretePerson.class);
     }
 
     @Test
     public void should_deserialize_a_list_of_objects() {
 
-        @SuppressWarnings("serial")
-        String listjson = new Gson().toJson(new ArrayList<Person>() {
-            {
-                ConcretePerson p = new ConcretePerson();
-                p.age = (12);
-                p.name = ("maria");
-                add(p);
+        final List<Person> list = listFromJson(personListAsJson());
 
-                ConcretePerson p2 = new ConcretePerson();
-                p2.age = (125);
-                p2.name = ("jose");
-                add(p2);
-            }
-        }, new TypeToken<List<ConcretePerson>>() {
-        }.getType());
-
-        Gson gson = Pretender.gsonLazyDeserializerFor(Person.class);
-        final List<Person> list = gson.<List<Person>>fromJson(listjson, new TypeToken<List<Person>>() {
-        }.getType());
         Person p = list.get(0);
         assertEquals("maria", p.nomeMaisLegal());
         assertEquals(Integer.valueOf(12), p.age());
@@ -103,37 +55,36 @@ public class PretenderTest extends SimpleBenchmark {
 
     @Test
     public void should_deserialize_map() {
-        @SuppressWarnings("serial")
-        String listjson = new Gson().toJson(new HashMap<String, Person>() {
-            {
-                ConcretePerson p = new ConcretePerson();
-                p.age = (12);
-                p.name = ("maria");
-                put("maria", p);
-            }
-        }, new TypeToken<Map<String, ConcretePerson>>() {
-        }.getType());
-
-        Gson gson = Pretender.gsonLazyDeserializerFor(Person.class);
-        Person p = gson.<Map<String, Person>>fromJson(listjson, new TypeToken<Map<String, Person>>() {
-        }.getType()).get("maria");
+        Map<String, Person> map = mapFromJson(personMapAsJson());
+        Person p = map.get("maria");
         assertEquals("maria", p.nomeMaisLegal());
     }
 
     @Test
     public void should_deserialize_embbebed_objects() {
+        Client client = clientFromJson(clientAsJson());
+        assertPersonOK(client.person());
+        assertEquals(NOW.toString(), client.clientSince().toString());
+    }
 
+    private Client clientFromJson(String clientJson) {
+        return lazyDeserializerFor(Person.class)
+                    .fromJson(clientJson, Client.class);
+    }
 
+    private String clientAsJson() {
         Map<String, Object> clientMap = new HashMap<String, Object>();
         clientMap.put("person", getPerson());
         clientMap.put("clientSince", NOW);
 
-        String clientJson = new Gson().toJson(clientMap);
+        return new Gson().toJson(clientMap);
+    }
 
-        Client client = Pretender.gsonLazyDeserializerFor(Client.class, Person.class)
-                .fromJson(clientJson, Client.class);
-        assertPersonOK(client.person());
-        assertEquals(NOW.toString(), client.clientSince().toString());
+    @Test
+    public void shouldInvokeHashCode() {
+        Gson gson = lazyDeserializerFor(Person.class);
+        Person p = gson.fromJson(json, Person.class);
+        assertNotNull(p.hashCode());
     }
 
     @Test
@@ -151,59 +102,82 @@ public class PretenderTest extends SimpleBenchmark {
         assertEquals(NOW.toString(), p.birth().toString());
     }
 
-    public static class ConcretePerson implements Person {
+    private Person getPerson() {
+        ConcretePerson person = new ConcretePerson();
+        person.name = "andre";
+        person.age = 5;
+        person.birth = NOW;
+        person.list = Arrays.asList(3, 4);
 
-        public ConcretePerson() {
-        }
+        ConcretePerson p = new ConcretePerson();
+        p.age = (12);
+        p.name = ("maria");
+        Map<String, ConcretePerson> map = new HashMap<String, ConcretePerson>();
+        map.put("maria", p);
+        person.buddies = map;
 
-        private String name;
-        private Integer age;
-        private List<Integer> list;
-        private Map<String, ConcretePerson> buddies;
-        private Date birth;
+        return person;
+    }
 
-        @Override
-        public String nomeMaisLegal() {
-            return name;
-        }
-
-        @Override
-        public Integer age() {
-            return age;
-        }
-
-        @Override
-        public List<Integer> list() {
-            return list;
-        }
-
-        @Override
-        public Map<String, ConcretePerson> buddies() {
-            return buddies;
-        }
-
-        public Date birth() {
-            return birth;
+    private void runLoop(int count, Gson gson, Class<? extends Person> clazz) {
+        for (int i = 0; i < count; i++) {
+            Person p = gson.fromJson(json, clazz);
+            assertPersonOK(p);
         }
     }
 
-    public static interface Person {
-
-        @BindToName("name")
-        String nomeMaisLegal();
-
-        Integer age();
-
-        List<Integer> list();
-
-        Map<String, ConcretePerson> buddies();
-
-        Date birth();
+    private Gson eagerDeserializerFor(Class<?>... classes) {
+        return Pretender.gsonEagerDeserializerFor(classes);
     }
 
-    public static interface Client {
-        Person person();
-
-        Date clientSince();
+    private Gson lazyDeserializerFor(Class<?>... classes) {
+        return Pretender.gsonLazyDeserializerFor(classes);
     }
+
+    protected String personListAsJson() {
+        return new Gson().toJson(personList(), new TypeToken<List<ConcretePerson>>() {
+        }.getType());
+    }
+
+    private List<Person> listFromJson(String listjson) {
+        Gson gson = lazyDeserializerFor(Person.class);
+        return gson.<List<Person>>fromJson(listjson, new TypeToken<List<Person>>() {
+        }.getType());
+    }
+
+    private ArrayList<Person> personList() {
+        return new ArrayList<Person>() {
+            {
+                ConcretePerson p = new ConcretePerson();
+                p.age = (12);
+                p.name = ("maria");
+                add(p);
+
+                ConcretePerson p2 = new ConcretePerson();
+                p2.age = (125);
+                p2.name = ("jose");
+                add(p2);
+            }
+        };
+    }
+
+
+    private Map<String, Person> mapFromJson(String mapJson) {
+        Gson gson = lazyDeserializerFor(Person.class);
+        return gson.<Map<String, Person>>fromJson(mapJson, new TypeToken<Map<String, Person>>() {
+        }.getType());
+    }
+
+    private String personMapAsJson() {
+        return new Gson().toJson(new HashMap<String, Person>() {
+            {
+                ConcretePerson p = new ConcretePerson();
+                p.age = (12);
+                p.name = ("maria");
+                put("maria", p);
+            }
+        }, new TypeToken<Map<String, ConcretePerson>>() {
+        }.getType());
+    }
+
 }
