@@ -1,44 +1,24 @@
 package org.pretender;
 
+import com.google.caliper.Param;
+import com.google.caliper.SimpleBenchmark;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.MethodRule;
-import org.junit.runners.model.FrameworkMethod;
-import org.junit.runners.model.Statement;
 import org.pretender.annotation.BindToName;
 
 import java.util.*;
 
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 
-public class PretenderTest {
+public class PretenderTest extends SimpleBenchmark {
 
-    @Rule
-    public MethodRule timeRule = new MethodRule() {
-
-        @Override
-        public Statement apply(final Statement base, final FrameworkMethod method, Object target) {
-            return new Statement() {
-
-                @Override
-                public void evaluate() throws Throwable {
-                    long time = System.currentTimeMillis();
-                    base.evaluate();
-                    System.out.println(String.format("%s run in: %d millis", method.getName(),
-                            System.currentTimeMillis() - time));
-                }
-            };
-        }
-    };
+    @Param({"10", "100", "1000"})
+    private int length;
 
     final Date NOW = new Date();
 
     String json = new Gson().toJson(getPerson());
-
-    int max = 200000;
 
     private Person getPerson() {
         ConcretePerson person = new ConcretePerson();
@@ -57,13 +37,11 @@ public class PretenderTest {
         return person;
     }
 
-    @Test
-    public void abstractLazyPerson() {
+    public void timeAbstractLazyDeserialization(int max) {
         Gson gson = Pretender.gsonLazyDeserializerFor(Person.class);
 
         for (int i = 0; i < max; i++) {
             Person p = gson.fromJson(json, Person.class);
-            p.birth();
             assertPersonOK(p);
         }
     }
@@ -72,11 +50,10 @@ public class PretenderTest {
     public void shouldInvokeHashCode() {
         Gson gson = Pretender.gsonEagerDeserializerFor(Person.class);
         Person p = gson.fromJson(json, Person.class);
-        assertEquals(1, p.hashCode());
+        assertNotNull(p.hashCode());
     }
 
-    @Test
-    public void abstractEagerPerson() {
+    public void timeAbstractEagerDeserialization(int max) {
         Gson gson = Pretender.gsonEagerDeserializerFor(Person.class);
 
         for (int i = 0; i < max; i++) {
@@ -85,8 +62,8 @@ public class PretenderTest {
         }
     }
 
-    @Test
-    public void concrete() {
+
+    public void timeConcreteDeserialization(int max) {
         for (int i = 0; i < max; i++) {
             Person p = new Gson().fromJson(json, ConcretePerson.class);
             assertPersonOK(p);
@@ -94,7 +71,7 @@ public class PretenderTest {
     }
 
     @Test
-    public void list() {
+    public void should_deserialize_a_list_of_objects() {
 
         @SuppressWarnings("serial")
         String listjson = new Gson().toJson(new ArrayList<Person>() {
@@ -125,7 +102,7 @@ public class PretenderTest {
     }
 
     @Test
-    public void map() {
+    public void should_deserialize_map() {
         @SuppressWarnings("serial")
         String listjson = new Gson().toJson(new HashMap<String, Person>() {
             {
@@ -144,7 +121,7 @@ public class PretenderTest {
     }
 
     @Test
-    public void embbebedPersonTest() {
+    public void should_deserialize_embbebed_objects() {
 
 
         Map<String, Object> clientMap = new HashMap<String, Object>();
@@ -157,6 +134,11 @@ public class PretenderTest {
                 .fromJson(clientJson, Client.class);
         assertPersonOK(client.person());
         assertEquals(NOW.toString(), client.clientSince().toString());
+    }
+
+    @Test
+    public void runBenchmark() {
+        com.google.caliper.Runner.main(this.getClass());
     }
 
     private void assertPersonOK(Person p) {
