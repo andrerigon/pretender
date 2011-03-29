@@ -11,6 +11,8 @@ public class JsonObjectHandler implements InvocationHandler {
 
 	private final Deserializer deserializer;
 
+    private final int hashCode = (int)Math.random() * 10000;
+
 	public JsonObjectHandler(Deserializer builder) {
 		this.deserializer = builder;
 	}
@@ -32,7 +34,7 @@ public class JsonObjectHandler implements InvocationHandler {
 	@Override
 	public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
         if( "hashCode".equals(method.getName()) ){
-            return 1;
+            return hashCode;
         }
 		return deserializer.property(method);
 	}
